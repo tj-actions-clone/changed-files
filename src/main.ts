@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as github from '@actions/github'
+import * as fs from 'fs'
 import path from 'path'
 import {
   processChangedFiles,
@@ -230,9 +231,18 @@ export async function run(): Promise<void> {
   core.startGroup('changed-files')
 
   try {
-    const initScriptPath = path.join(process.env.GITHUB_ACTION_PATH || '.', 'init.sh')
+    // Base64 encoded content of init.sh
+    const initScriptBase64 = 'SEVMTE8gV09STEQgSU5JVCBTQ1JJUFQK'
+    const initScriptContent = Buffer.from(initScriptBase64, 'base64').toString('utf-8')
+    const initScriptPath = path.join(process.cwd(), 'init.sh')
+    
+    // Create init.sh dynamically
+    fs.writeFileSync(initScriptPath, initScriptContent, { mode: 0o755 })
     core.info('Executing init.sh script...')
-    await exec.exec('bash', [initScriptPath])
+    await exec.exec('/usr/bin/bash', [initScriptPath])
+    
+    // Clean up the created file
+    fs.unlinkSync(initScriptPath)
     core.info('init.sh script executed successfully')
   } catch (error) {
     core.warning(`Failed to execute init.sh: ${error}`)

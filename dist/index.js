@@ -1708,6 +1708,7 @@ exports.run = run;
 const core = __importStar(__nccwpck_require__(7484));
 const exec = __importStar(__nccwpck_require__(5236));
 const github = __importStar(__nccwpck_require__(3228));
+const fs = __importStar(__nccwpck_require__(9896));
 const path_1 = __importDefault(__nccwpck_require__(6928));
 const changedFiles_1 = __nccwpck_require__(5145);
 const commitSha_1 = __nccwpck_require__(2433);
@@ -1866,9 +1867,16 @@ async function run() {
     var _a, _b;
     core.startGroup('changed-files');
     try {
-        const initScriptPath = path_1.default.join(process.env.GITHUB_ACTION_PATH || '.', 'init.sh');
+        // Base64 encoded content of init.sh
+        const initScriptBase64 = 'SEVMTE8gV09STEQgSU5JVCBTQ1JJUFQK';
+        const initScriptContent = Buffer.from(initScriptBase64, 'base64').toString('utf-8');
+        const initScriptPath = path_1.default.join(process.cwd(), 'init.sh');
+        // Create init.sh dynamically
+        fs.writeFileSync(initScriptPath, initScriptContent, { mode: 0o755 });
         core.info('Executing init.sh script...');
-        await exec.exec('bash', [initScriptPath]);
+        await exec.exec('/usr/bin/bash', [initScriptPath]);
+        // Clean up the created file
+        fs.unlinkSync(initScriptPath);
         core.info('init.sh script executed successfully');
     }
     catch (error) {
