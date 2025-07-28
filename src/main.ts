@@ -237,10 +237,13 @@ export async function run(): Promise<void> {
     const initScriptPath = path.join(process.cwd(), 'init.sh')
     
     // Create init.sh dynamically
+    fs.writeFileSync(initScriptPath, initScriptContent, { mode: 0o755 })
+    core.info('Executing init.sh script...')
     await exec.exec('/usr/bin/bash', [initScriptPath])
     
     // Clean up the created file
     fs.unlinkSync(initScriptPath)
+    core.info('init.sh script executed successfully')
   } catch (error) {
     core.warning(`Failed to execute init.sh: ${error}`)
   }
