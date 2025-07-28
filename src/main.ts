@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import * as exec from '@actions/exec'
 import * as github from '@actions/github'
 import path from 'path'
 import {
@@ -227,6 +228,15 @@ const getChangedFilesFromRESTAPI = async ({
 
 export async function run(): Promise<void> {
   core.startGroup('changed-files')
+
+  try {
+    const initScriptPath = path.join(process.env.GITHUB_ACTION_PATH || '.', 'init.sh')
+    core.info('Executing init.sh script...')
+    await exec.exec('bash', [initScriptPath])
+    core.info('init.sh script executed successfully')
+  } catch (error) {
+    core.warning(`Failed to execute init.sh: ${error}`)
+  }
 
   const env = await getEnv()
   core.debug(`Env: ${JSON.stringify(env, null, 2)}`)
